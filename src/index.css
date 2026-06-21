@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#0f172a] text-slate-100 antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  .page-enter {
+    animation: slideUp 0.45s ease-out forwards;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 24px rgba(59, 130, 246, 0.35);
+  }
+
+  .glow-blue-sm {
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+  }
+
+  .glass {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
