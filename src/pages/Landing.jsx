@@ -26,9 +26,9 @@ const PROVIDERS = [
 ]
 
 const TRUST_ITEMS = [
-  { icon: Zap, text: 'AI-powered in minutes' },
-  { icon: Shield, text: 'Secure & private' },
-  { icon: Lock, text: 'Expert-verified steps' },
+  { icon: Zap, text: 'Free recovery guide' },
+  { icon: Shield, text: 'Official recovery options' },
+  { icon: Lock, text: 'No passwords requested' },
 ]
 
 export default function Landing({ onProviderSelect }) {
@@ -64,13 +64,13 @@ export default function Landing({ onProviderSelect }) {
         </div>
 
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5 max-w-3xl">
-          Recover Your Email Account{' '}
-          <span className="text-electric-500">in Minutes</span>
+          Get an Email Account{' '}
+          <span className="text-electric-500">Recovery Guide</span>
         </h1>
 
         <p className="text-slate-400 text-lg sm:text-xl max-w-xl mb-12 leading-relaxed">
-          Our AI analyzes your exact situation and generates a personalized,
-          step-by-step recovery plan — no guesswork, no waiting on hold.
+          Find recovery steps for your provider and situation. Your email
+          provider controls verification and whether access can be restored.
         </p>
 
         {/* Provider cards */}

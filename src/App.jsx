@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Landing from './pages/Landing'
 import ProblemForm from './pages/ProblemForm'
 import Paywall from './pages/Paywall'
 import RecoveryPlan from './pages/RecoveryPlan'
+import { getFallbackSteps, parseRecoverySteps } from './lib/recovery'
 
 const PAGES = {
   LANDING: 'landing',
@@ -17,9 +18,12 @@ export default function App() {
   const [formData, setFormData] = useState(null)
   const [recoverySteps, setRecoverySteps] = useState([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [source, setSource] = useState('guide')
+  const requestRef = useRef(null)
 
   function handleProviderSelect(selectedProvider) {
     setProvider(selectedProvider)
+    setFormData(null)
     setPage(PAGES.PROBLEM_FORM)
   }
 
@@ -32,47 +36,42 @@ export default function App() {
     setIsGenerating(true)
     setPage(PAGES.RECOVERY_PLAN)
 
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
+    const timer = setTimeout(() => controller.abort(), 20000)
+    let result = { steps: getFallbackSteps(provider, formData.problem), source: 'guide' }
+    setRecoverySteps([])
     try {
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-      const prompt = buildPrompt(provider, formData)
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/recovery-plan', {
         method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1500,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-        }),
+        headers: { 'content-type': 'application/json' },
+        // The email address remains in this browser and is not sent to the AI.
+        body: JSON.stringify({ provider, problem: formData.problem, details: formData.details }),
+        signal: controller.signal,
       })
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+      if (response.ok) {
+        const data = await response.json()
+        result = { steps: parseRecoverySteps(JSON.stringify(data.steps)), source: data.source === 'ai' ? 'ai' : 'guide' }
       }
-
-      const json = await response.json()
-      const text = json.content?.[0]?.text ?? ''
-      const steps = parseSteps(text)
-      setRecoverySteps(steps)
-    } catch (err) {
-      console.error('Recovery generation failed:', err)
-      setRecoverySteps(getFallbackSteps(provider, formData?.problem))
+    } catch {
+      // Static hosts, timeouts, and invalid AI responses use provider guidance.
     } finally {
-      setIsGenerating(false)
+      clearTimeout(timer)
+      // Start Over or a newer request must not receive stale results.
+      if (requestRef.current === controller) {
+        setRecoverySteps(result.steps)
+        setSource(result.source)
+        setIsGenerating(false)
+        requestRef.current = null
+      }
     }
   }
 
   function handleRestart() {
+    const request = requestRef.current
+    requestRef.current = null
+    request?.abort()
     setPage(PAGES.LANDING)
     setProvider(null)
     setFormData(null)
@@ -88,6 +87,7 @@ export default function App() {
       {page === PAGES.PROBLEM_FORM && (
         <ProblemForm
           provider={provider}
+          initialData={formData}
           onSubmit={handleFormSubmit}
           onBack={() => setPage(PAGES.LANDING)}
         />
@@ -105,82 +105,11 @@ export default function App() {
           provider={provider}
           formData={formData}
           steps={recoverySteps}
+          source={source}
           isGenerating={isGenerating}
           onRestart={handleRestart}
         />
       )}
     </div>
   )
-}
-
-function buildPrompt(provider, formData) {
-  return `You are an expert email account recovery specialist. A user needs help recovering their ${provider} email account.
-
-Problem type: ${formData?.problem}
-Email address: ${formData?.email}
-Additional details: ${formData?.details || 'None provided'}
-
-Please provide a clear, numbered step-by-step recovery plan specifically for ${provider} with this exact problem.
-
-Format your response as a numbered list (1. 2. 3. etc.) with each step on its own line. Be specific, actionable, and include any relevant URLs or contact information for ${provider}'s support. Aim for 6-10 practical steps. Do not include any introduction or conclusion — just the numbered steps.`
-}
-
-function parseSteps(text) {
-  const lines = text.split('\n').filter(Boolean)
-  const steps = []
-
-  for (const line of lines) {
-    const match = line.match(/^\s*(\d+)[.)]\s+(.+)/)
-    if (match) {
-      steps.push(match[2].trim())
-    }
-  }
-
-  if (steps.length === 0) {
-    const paragraphs = text.split('\n\n').filter(Boolean)
-    return paragraphs.map((p) => p.replace(/^\s*[-•*]\s*/, '').trim())
-  }
-
-  return steps
-}
-
-function getFallbackSteps(provider, problem) {
-  const base = {
-    Gmail: [
-      'Go to accounts.google.com/signin/recovery',
-      "Click 'Forgot email?' or 'Forgot password?' depending on your situation",
-      'Enter a recovery email address or phone number associated with your account',
-      'Follow the verification steps Google sends to your recovery contact',
-      'If you cannot access recovery options, click "Try another way"',
-      "Complete Google's identity verification questions about your account history",
-      "Once access is restored, immediately update your password to something strong and unique",
-      'Enable 2-Factor Authentication to prevent future lockouts',
-      'Review and update your recovery options under Security settings',
-    ],
-    iCloud: [
-      'Visit iforgot.apple.com to begin the recovery process',
-      'Enter your Apple ID email address and click Continue',
-      'Choose a reset method: email, phone number, or security questions',
-      'If those options fail, select "Unable to use these options?"',
-      'Apply for Account Recovery — Apple will verify your identity over several days',
-      'Ensure your trusted devices are nearby during the process',
-      "Once recovered, go to appleid.apple.com to update your password",
-      'Set up or review your trusted phone numbers and recovery email',
-      'Enable two-factor authentication if not already active',
-    ],
-    Yahoo: [
-      'Go to login.yahoo.com and click "Trouble signing in?"',
-      'Enter your Yahoo email address and click Continue',
-      "Choose 'I forgot my password' and select a verification method",
-      'Check for a verification code sent to your recovery email or phone',
-      'If you lack access to those, click "I don\'t have access to these"',
-      "Use Yahoo's Account Key or answer your security questions",
-      "Submit an account recovery request through Yahoo's help center if needed",
-      'Once access is restored, change your password immediately',
-      'Update your recovery phone number and email in account security settings',
-      'Review connected apps and revoke any suspicious third-party access',
-    ],
-  }
-
-  return base[provider] || base.Gmail
 }

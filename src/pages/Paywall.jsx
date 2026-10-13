@@ -9,7 +9,7 @@ const PROBLEM_LABELS = {
 }
 
 const FEATURES = [
-  'Step-by-step AI-personalized recovery plan',
+  'Step-by-step recovery guidance',
   'Specific instructions for ' + 'your provider',
   'Troubleshooting tips if steps fail',
   'Security hardening advice post-recovery',
@@ -97,13 +97,9 @@ export default function Paywall({ provider, formData, onUnlock, onBack }) {
             }}
           >
             <div className="text-center mb-6">
-              <p className="text-slate-400 text-sm mb-1">One-time payment</p>
-              <div className="flex items-end justify-center gap-1">
-                <span className="text-5xl font-extrabold text-white">$9</span>
-                <span className="text-2xl font-bold text-white mb-1">.99</span>
-              </div>
+              <p className="text-electric-400 text-sm mb-1">Free preview</p>
               <h3 className="text-xl font-bold text-white mt-2">
-                Unlock Your Full Recovery Plan
+                Preview Your Recovery Guide
               </h3>
               <p className="text-slate-400 text-sm mt-1">
                 Personalized for your {provider} account
@@ -122,7 +118,7 @@ export default function Paywall({ provider, formData, onUnlock, onBack }) {
               ))}
             </ul>
 
-            {/* Stripe placeholder button */}
+            {/* Paid access remains unavailable until checkout is implemented. */}
             <button
               onClick={onUnlock}
               className="w-full py-4 rounded-xl font-bold text-lg text-white flex items-center justify-center gap-2.5 transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
@@ -132,17 +128,17 @@ export default function Paywall({ provider, formData, onUnlock, onBack }) {
               }}
             >
               <Lock className="w-5 h-5" />
-              Pay $9.99 &amp; Get Instant Access
+              View Free Recovery Guide
             </button>
 
             <p className="text-center text-slate-500 text-xs mt-3 flex items-center justify-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Secured by Stripe · 30-day money-back guarantee
+              No payment is taken. Paid access is not available yet.
             </p>
           </div>
 
           <p className="text-center text-slate-600 text-xs">
-            By continuing you agree to our Terms of Service and Privacy Policy.
+            Recovery guidance cannot guarantee access to your account.
           </p>
         </div>
       </main>

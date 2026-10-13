@@ -15,6 +15,7 @@ export default function RecoveryPlan({
   provider,
   formData,
   steps,
+  source,
   isGenerating,
   onRestart,
 }) {
@@ -66,6 +67,7 @@ export default function RecoveryPlan({
             {formData?.email} &mdash; Follow each step in order and check them
             off as you go.
           </p>
+          {!isGenerating && <p className="mt-3 text-xs text-slate-400">{source === 'ai' ? 'AI-generated guidance — review each step on your provider’s official website.' : 'Provider recovery guidance — a general checklist for your selected problem.'} Only your email provider can restore access.</p>}
         </div>
 
         {/* Progress */}
@@ -84,8 +86,8 @@ export default function RecoveryPlan({
                 All steps completed!
               </p>
               <p className="text-emerald-400/70 text-sm">
-                You should now have access to your account. Remember to update
-                your password and enable 2FA.
+                This checklist does not confirm account access. If recovery
+                succeeded, update your password and review two-factor authentication.
               </p>
             </div>
           </div>

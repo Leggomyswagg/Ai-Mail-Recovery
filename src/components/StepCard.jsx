@@ -1,10 +1,14 @@
-import { CheckCircle2, Circle } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 
 export default function StepCard({ index, text, checked, onToggle }) {
   return (
-    <div
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={`Step ${index + 1}: ${text}`}
       onClick={onToggle}
-      className="group flex items-start gap-4 p-5 rounded-xl border cursor-pointer transition-all duration-200 select-none"
+      className="group w-full text-left flex items-start gap-4 p-5 rounded-xl border cursor-pointer transition-all duration-200 select-none focus-visible:outline focus-visible:outline-electric-500"
       style={{
         background: checked
           ? 'rgba(16,185,129,0.06)'
@@ -30,7 +34,7 @@ export default function StepCard({ index, text, checked, onToggle }) {
 
       {/* Step text */}
       <p
-        className="text-sm sm:text-base leading-relaxed transition-colors"
+        className="min-w-0 break-words text-sm sm:text-base leading-relaxed transition-colors"
         style={{
           color: checked ? 'rgb(100 116 139)' : 'rgb(226 232 240)',
           textDecoration: checked ? 'line-through' : 'none',
@@ -38,6 +42,6 @@ export default function StepCard({ index, text, checked, onToggle }) {
       >
         {text}
       </p>
-    </div>
+    </button>
   )
 }
