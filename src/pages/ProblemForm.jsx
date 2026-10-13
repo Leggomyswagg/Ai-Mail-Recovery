@@ -9,17 +9,17 @@ const PROBLEMS = [
   { value: 'other', label: 'Other' },
 ]
 
-export default function ProblemForm({ provider, onSubmit, onBack }) {
-  const [problem, setProblem] = useState('')
-  const [email, setEmail] = useState('')
-  const [details, setDetails] = useState('')
+export default function ProblemForm({ provider, initialData, onSubmit, onBack }) {
+  const [problem, setProblem] = useState(initialData?.problem || '')
+  const [email, setEmail] = useState(initialData?.email || '')
+  const [details, setDetails] = useState(initialData?.details || '')
   const [errors, setErrors] = useState({})
 
   function validate() {
     const e = {}
     if (!problem) e.problem = 'Please select what happened'
-    if (!email) e.email = 'Email address is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (!email.trim()) e.email = 'Email address is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
       e.email = 'Enter a valid email address'
     return e
   }
@@ -31,7 +31,7 @@ export default function ProblemForm({ provider, onSubmit, onBack }) {
       setErrors(e)
       return
     }
-    onSubmit({ problem, email, details })
+    onSubmit({ problem, email: email.trim(), details: details.trim() })
   }
 
   const selectedLabel = PROBLEMS.find((p) => p.value === problem)?.label
@@ -77,11 +77,12 @@ export default function ProblemForm({ provider, onSubmit, onBack }) {
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Problem dropdown */}
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label htmlFor="problem" className="block text-sm font-semibold text-slate-300 mb-2">
                 What happened? <span className="text-electric-500">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="problem"
                   value={problem}
                   onChange={(e) => {
                     setProblem(e.target.value)
@@ -107,11 +108,12 @@ export default function ProblemForm({ provider, onSubmit, onBack }) {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-300 mb-2">
                 Your {provider} email address{' '}
                 <span className="text-electric-500">*</span>
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -128,17 +130,20 @@ export default function ProblemForm({ provider, onSubmit, onBack }) {
 
             {/* Details */}
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label htmlFor="details" className="block text-sm font-semibold text-slate-300 mb-2">
                 Additional details{' '}
                 <span className="text-slate-500 font-normal">(optional)</span>
               </label>
               <textarea
+                id="details"
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="E.g. I lost my old phone, my account was sending spam, I haven't logged in for 2 years..."
                 rows={4}
+                maxLength={1000}
                 className="w-full bg-[#1e293b] border border-slate-700 text-white placeholder-slate-600 rounded-xl px-4 py-3.5 focus:outline-none focus:border-electric-500 focus:ring-1 focus:ring-electric-500 transition-colors resize-none leading-relaxed"
               />
+              <p className="mt-2 text-xs text-slate-400">Never include passwords or verification codes. Optional details may be sent to our AI provider to prepare your guide; your email address stays in this browser.</p>
             </div>
 
             <button
